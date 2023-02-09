@@ -9,11 +9,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: rgb(148, 144, 144);
 }
 
 #root {
-  /* Center vertically and horizontally */
   padding: 5px;
-  background-color: rgb(199, 179, 1);
-  width: 350px;
+  background-color: black;
+  width: 336px;
+  height: 474px;
 }

@@ -1,33 +1,59 @@
 @import "./index.css";
 
+.calculator-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+#calculator {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .button {
-  background-color: #4caf50; /* Green */
+  background-color: #504d4d;
   border: none;
   color: white;
   padding: 0px;
   text-align: center;
   text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  font-weight: bolder;
+  font-size: 22px;
+  font-weight: normal;
   margin: 2px;
   cursor: pointer;
-  width: 50px;
-  height: 50px;
+  width: 80px;
+  height: 80px;
 }
 
 .button-operator {
-  background-color: #385839;
+  background-color: #757e76;
 }
 
 #clear {
   background-color: #af4c54;
+  width: 164px;
+}
+
+#equals {
+  height: 164px;
+  background-color: rgb(67, 67, 131);
+}
+
+#zero {
+  position: relative;
+  top: -84px;
+  width: 164px;
+}
+
+#decimal {
+  position: relative;
+  top: -84px;
 }
 
 #display {
   margin: 2px;
   padding-right: 2px;
-  background-color: #af4c54;
+  color: white;
   display: flex;
   align-items: flex-end;
   flex-direction: column;
@@ -39,6 +65,6 @@
 }
 
 #current {
-  height: 22px;
-  font-size: large;
+  height: 28px;
+  font-size: 22px;
 }

@@ -24,6 +24,8 @@ const buttons = [
 const initalState = {
   currentValue: "0",
   history: "",
+  calculated: false,
+  result: "",
 };
 
 function isOperator(value) {
@@ -49,13 +51,27 @@ function handleNumbers(state, action) {
       newHistory = newHistory + myValue.caption;
     }
   }
-  if (action.type === "zero" && state.currentValue !== myValue.caption) {
-    newValue = state.currentValue + myValue.caption;
-    newHistory = newHistory + myValue.caption;
+  if (action.type === "zero") {
+    if (state.history === "") newHistory = myValue.caption;
+
+    if (isOperator(state.currentValue)) {
+      newValue = myValue.caption;
+      newHistory = state.history + myValue.caption;
+    } else if (state.currentValue === "0") {
+      newValue = myValue.caption;
+    }
   }
+
+  if (state.calculated) {
+    newValue = myValue.caption;
+    newHistory = myValue.caption;
+  }
+
   return {
     currentValue: newValue,
     history: newHistory,
+    calculated: false,
+    result: "",
   };
 }
 
@@ -71,9 +87,16 @@ function handleDecimalPoint(state, action) {
     newHistory = newHistory + ".";
   }
 
+  if (state.calculated) {
+    newCurentValue = "0.";
+    newHistory = newCurentValue;
+  }
+
   return {
     currentValue: newCurentValue,
     history: newHistory,
+    calculated: false,
+    result: "",
   };
 }
 
@@ -83,47 +106,78 @@ function handleOperators(state, action) {
   // This is default
   let newValue = state.currentValue;
   let newHistory = state.history;
-  /*
-  // When history is one character
-  if (isOperator(myValue.caption) && isOperator(state.history)) {
-    return {
-      currentValue: state.currentValue,
-      history: state.history,
-    };
-  }
-  */
-  if (state.history !== "" && !isOperator(state.history)) {
-    newValue = myValue.caption;
-    newHistory = state.history + myValue.caption;
-  }
 
+  // State is initial
   if (action.type === "subtract" && state.history === "") {
     newValue = myValue.caption;
     newHistory = myValue.caption;
   }
 
+  // State is number or "="
+  if (state.history !== "" && !isOperator(state.history)) {
+    newValue = myValue.caption;
+    newHistory = state.history + myValue.caption;
+  }
+
   if (last2Char.length === 2) {
-    if (last2Char[0] === "+" || last2Char[0] === "/" || last2Char[0] === "x") {
-      newValue = myValue.caption;
-      newHistory = state.history.slice(0, -1);
-    } else if (action.type === "subtract" && isOperator(last2Char[1])) {
-      newValue = myValue.caption;
-      newHistory = state.history + myValue.caption;
-    } else if (isOperator(last2Char[0]) && isOperator(last2Char[1])) {
-      newValue = myValue.caption;
-      newHistory = state.history.slice(0, -2) + myValue.caption;
+    // 9x
+    if (!isOperator(last2Char[0]) && isOperator(last2Char[1])) {
+      // - is pressed
+      if (action.type === "subtract") {
+        newValue = myValue.caption;
+        newHistory = state.history + myValue.caption;
+      } else {
+        newValue = myValue.caption;
+        newHistory = state.history.slice(0, -1) + myValue.caption;
+      }
+    }
+    // 9x- or 9--
+    if (isOperator(last2Char[0]) && isOperator(last2Char[1])) {
+      if (action.type !== "subtract") {
+        newValue = myValue.caption;
+        newHistory = state.history.slice(0, -2) + myValue.caption;
+      } else {
+        newValue = myValue.caption;
+        newHistory = state.history;
+      }
+    }
+  }
+
+  if (state.calculated) {
+    newValue = state.result;
+    newHistory = newValue + myValue.caption;
+    if (newValue === "") {
+      newValue = "0";
+      newHistory = "";
     }
   }
 
   return {
     currentValue: newValue,
     history: newHistory,
+    calculated: false,
+    result: "",
+  };
+}
+
+function handleCalculation(state) {
+  let newValue = "";
+  let newHistory = "";
+  let result = "";
+
+  if (state.history === "") {
+    newValue = "NaN";
+    newHistory = "=NaN";
+  }
+  return {
+    currentValue: newValue,
+    history: newHistory,
+    calculated: true,
+    result: result,
   };
 }
 
 function reducer(state, action) {
-  let newHistory = state.history;
-  let newCurentValue = state.currentValue;
   switch (action.type) {
     case "clear":
       return initalState;
@@ -145,6 +199,8 @@ function reducer(state, action) {
     case "subtract":
     case "add":
       return handleOperators(state, action);
+    case "equals":
+      return handleCalculation(state);
     default:
       return initalState;
   }

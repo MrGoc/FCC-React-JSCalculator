@@ -26,36 +26,35 @@ const initalState = {
   history: "",
 };
 
+function isOperator(value) {
+  if (value === "-" || value === "/" || value === "x" || value === "+")
+    return true;
+
+  return false;
+}
+
 function handleNumbers(state, action) {
   let newHistory = state.history;
-  let newCurentValue = state.currentValue;
+  let newValue = state.currentValue;
   const myValue = buttons.find(({ id }) => id === action.type);
   if (newHistory === "") newHistory = myValue.caption;
 
-  if (
-    newCurentValue === "*" ||
-    newCurentValue === "-" ||
-    newCurentValue === "/" ||
-    newCurentValue === "x"
-  ) {
-    newCurentValue = "";
-  }
-
   if (action.type !== "zero") {
     if (state.currentValue === "0") {
-      newCurentValue = myValue.caption;
+      newValue = myValue.caption;
       newHistory = myValue.caption;
     } else {
-      newCurentValue = newCurentValue + myValue.caption;
+      if (isOperator(state.currentValue)) newValue = myValue.caption;
+      else newValue = state.currentValue + myValue.caption;
       newHistory = newHistory + myValue.caption;
     }
   }
   if (action.type === "zero" && state.currentValue !== myValue.caption) {
-    newCurentValue = newCurentValue + myValue.caption;
+    newValue = state.currentValue + myValue.caption;
     newHistory = newHistory + myValue.caption;
   }
   return {
-    currentValue: newCurentValue,
+    currentValue: newValue,
     history: newHistory,
   };
 }
@@ -79,38 +78,45 @@ function handleDecimalPoint(state, action) {
 }
 
 function handleOperators(state, action) {
-  let newHistory = state.history;
-  let newCurentValue = state.currentValue;
-  let last2Char = newHistory.slice(-2);
+  let last2Char = state.history.slice(-2);
   const myValue = buttons.find(({ id }) => id === action.type);
-
-  if (newHistory === "" && action.type === "subtract") {
-    newCurentValue = myValue.caption;
-    newHistory = myValue.caption;
-  } else if (
-    newHistory.length === 1 &&
-    newHistory !== "*" &&
-    newHistory !== "-" &&
-    newHistory !== "/" &&
-    newHistory !== "x"
-  ) {
-    newCurentValue = myValue.caption;
-    newHistory = newHistory + myValue.caption;
-  }
+  // This is default
+  let newValue = state.currentValue;
+  let newHistory = state.history;
   /*
-  if (
-    buttons.findIndex((el) => el.caption === last2Char[0]) > -1 &&
-    action.type !== "subtract"
-  ) {
-    newCurentValue = myValue.caption;
-    newHistory = newHistory.slice(0, newHistory.length - 3) + myValue.caption;
-  } else if (last2Char[1] === myValue.caption) {
-    newCurentValue = myValue.caption;
-    newHistory = newHistory + myValue.caption;
+  // When history is one character
+  if (isOperator(myValue.caption) && isOperator(state.history)) {
+    return {
+      currentValue: state.currentValue,
+      history: state.history,
+    };
   }
-*/
+  */
+  if (state.history !== "" && !isOperator(state.history)) {
+    newValue = myValue.caption;
+    newHistory = state.history + myValue.caption;
+  }
+
+  if (action.type === "subtract" && state.history === "") {
+    newValue = myValue.caption;
+    newHistory = myValue.caption;
+  }
+
+  if (last2Char.length === 2) {
+    if (last2Char[0] === "+" || last2Char[0] === "/" || last2Char[0] === "x") {
+      newValue = myValue.caption;
+      newHistory = state.history.slice(0, -1);
+    } else if (action.type === "subtract" && isOperator(last2Char[1])) {
+      newValue = myValue.caption;
+      newHistory = state.history + myValue.caption;
+    } else if (isOperator(last2Char[0]) && isOperator(last2Char[1])) {
+      newValue = myValue.caption;
+      newHistory = state.history.slice(0, -2) + myValue.caption;
+    }
+  }
+
   return {
-    currentValue: newCurentValue,
+    currentValue: newValue,
     history: newHistory,
   };
 }

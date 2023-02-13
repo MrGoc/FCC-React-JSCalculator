@@ -220,7 +220,81 @@ function handleCalculation(state) {
 }
 
 function calculate(value) {
-  return "calc";
+  //return "calc";
+  let calcArr = getCalcArray(value);
+  let res = 0;
+
+  let ix = calcArr.indexOf("/");
+  while (ix > -1) {
+    res = calcArr[ix - 1] / calcArr[ix + 1];
+    calcArr.splice(ix - 1, 3, res);
+    ix = calcArr.indexOf("/");
+  }
+
+  ix = calcArr.indexOf("x");
+  while (ix > -1) {
+    res = calcArr[ix - 1] * calcArr[ix + 1];
+    calcArr.splice(ix - 1, 3, res);
+    ix = calcArr.indexOf("x");
+  }
+
+  ix = calcArr.indexOf("+");
+  while (ix > -1) {
+    res = calcArr[ix - 1] + calcArr[ix + 1];
+    calcArr.splice(ix - 1, 3, res);
+    ix = calcArr.indexOf("+");
+  }
+
+  ix = calcArr.indexOf("-");
+  while (ix > -1) {
+    res = calcArr[ix - 1] - calcArr[ix + 1];
+    calcArr.splice(ix - 1, 3, res);
+    ix = calcArr.indexOf("-");
+  }
+  return res;
+}
+
+function getCalcArray(value) {
+  let val = "";
+  let res = [];
+  for (let i = 0; i < value.length; i++) {
+    if (value[i] === "-" && i === 0) {
+      val = value[i];
+    } else if (isOperator(value[i])) {
+      if (/*value[i] === "-" &&*/ value[i + 1] === "-") {
+        res.push(val);
+        res.push(value[i]);
+        val = "-";
+        i++;
+      } else {
+        res.push(val);
+        res.push(value[i]);
+        val = "";
+      }
+    } else {
+      val += value[i];
+    }
+  }
+  if (val !== "") res.push(val);
+
+  return res;
+
+  /*
+  let copy = value;
+
+  value = value.replace(/[0-9]+/g, "#").replace(/[\(|\|\.)]/g, "");
+  let numbers = copy.split(/[^0-9\.]+/);
+  let operators = value.split("#").filter(function (n) {
+    return n;
+  });
+  let result = [];
+
+  for (let i = 0; i < numbers.length; i++) {
+    result.push(numbers[i]);
+    if (i < operators.length) result.push(operators[i]);
+  }
+  return result;
+  */
 }
 
 function reducer(state, action) {

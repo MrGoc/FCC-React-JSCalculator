@@ -36,37 +36,48 @@ function isOperator(value) {
 }
 
 function handleNumbers(state, action) {
-  let newHistory = state.history;
-  let newValue = state.currentValue;
   const myValue = buttons.find(({ id }) => id === action.type);
-  if (newHistory === "") newHistory = myValue.caption;
-
-  if (action.type !== "zero") {
-    if (state.currentValue === "0") {
-      newValue = myValue.caption;
-      newHistory = myValue.caption;
-    } else {
-      if (isOperator(state.currentValue)) newValue = myValue.caption;
-      else newValue = state.currentValue + myValue.caption;
-      newHistory = newHistory + myValue.caption;
-    }
-  }
-  if (action.type === "zero") {
-    if (state.history === "") newHistory = myValue.caption;
-
-    if (isOperator(state.currentValue)) {
-      newValue = myValue.caption;
-      newHistory = state.history + myValue.caption;
-    } else if (state.currentValue === "0") {
-      newValue = myValue.caption;
-    }
-  }
-
+  let newHistory = "";
+  let newValue = "";
   if (state.calculated) {
     newValue = myValue.caption;
     newHistory = myValue.caption;
+  } else if (!isNaN(state.currentValue)) {
+    newValue = state.currentValue + myValue.caption;
+    newHistory = state.history + myValue.caption;
+    if (state.history === "") {
+      newValue = myValue.caption;
+      newHistory = myValue.caption;
+    }
+  } else {
+    newValue = myValue.caption;
+    newHistory = state.history + myValue.caption;
   }
+  return {
+    currentValue: newValue,
+    history: newHistory,
+    calculated: false,
+    result: "",
+  };
+}
 
+function handleZero(state, action) {
+  let newHistory = "";
+  let newValue = "";
+  if (state.calculated) {
+    newValue = "0";
+    newHistory = "0";
+  } else if (state.currentValue === "0") {
+    newValue = "0";
+    if (state.history === "") newHistory = "0";
+    else newHistory = state.history;
+  } else if (!isNaN(state.currentValue)) {
+    newValue = state.currentValue + "0";
+    newHistory = state.history + "0";
+  } else {
+    newValue = "0";
+    newHistory = state.history + "0";
+  }
   return {
     currentValue: newValue,
     history: newHistory,
@@ -77,23 +88,25 @@ function handleNumbers(state, action) {
 
 function handleDecimalPoint(state, action) {
   let newHistory = state.history;
-  let newCurentValue = state.currentValue;
-
-  if (state.currentValue === "0") {
-    newCurentValue = newCurentValue + ".";
-    newHistory = newCurentValue;
-  } else if (newHistory.indexOf(".") === -1) {
-    newCurentValue = newCurentValue + ".";
-    newHistory = newHistory + ".";
-  }
+  let newValue = state.currentValue;
 
   if (state.calculated) {
-    newCurentValue = "0.";
-    newHistory = newCurentValue;
+    newValue = "0.";
+    newHistory = newValue;
+  } else if (state.currentValue === "0") {
+    newValue = "0.";
+    if (state.history === "") newHistory = newValue;
+    else newHistory = state.history + ".";
+  } else if (
+    !isNaN(state.currentValue) &&
+    state.currentValue.indexOf(".") === -1
+  ) {
+    newValue = state.currentValue + ".";
+    newHistory = state.history + ".";
   }
 
   return {
-    currentValue: newCurentValue,
+    currentValue: newValue,
     history: newHistory,
     calculated: false,
     result: "",
@@ -111,6 +124,11 @@ function handleOperators(state, action) {
   if (action.type === "subtract" && state.history === "") {
     newValue = myValue.caption;
     newHistory = myValue.caption;
+  }
+  // State is initial
+  if (action.type !== "subtract" && state.history === "") {
+    newValue = myValue.caption;
+    newHistory = "0" + myValue.caption;
   }
 
   // State is number or "="
@@ -144,11 +162,16 @@ function handleOperators(state, action) {
   }
 
   if (state.calculated) {
-    newValue = state.result;
-    newHistory = newValue + myValue.caption;
-    if (newValue === "") {
-      newValue = "0";
-      newHistory = "";
+    newValue = myValue.caption;
+    newHistory = state.result + myValue.caption;
+    if (state.result === "") {
+      if (action.type === "subtract") {
+        newValue = myValue.caption;
+        newHistory = myValue.caption;
+      } else {
+        newValue = myValue.caption;
+        newHistory = "0" + myValue.caption;
+      }
     }
   }
 
@@ -161,20 +184,43 @@ function handleOperators(state, action) {
 }
 
 function handleCalculation(state) {
-  let newValue = "";
-  let newHistory = "";
-  let result = "";
+  let newValue = state.currentValue;
+  let newHistory = state.history;
+  let result = state.result;
+  let calculated = state.calculated;
+  let last2Char = state.history.slice(-2);
 
   if (state.history === "") {
     newValue = "NaN";
     newHistory = "=NaN";
+    calculated = true;
+  } else if (!isNaN(state.currentValue)) {
+    result = calculate(state.history);
+    newHistory = state.history + "=" + result;
+    newValue = result;
+    calculated = true;
+  } else {
+    if (isOperator(last2Char[0])) {
+      result = calculate(state.history.slice(0, -2));
+      newHistory = state.history.slice(0, -2) + "=" + result;
+    } else {
+      result = calculate(state.history.slice(0, -1));
+      newHistory = state.history.slice(0, -1) + "=" + result;
+    }
+    newValue = result;
+    calculated = true;
   }
+
   return {
     currentValue: newValue,
     history: newHistory,
-    calculated: true,
+    calculated: calculated,
     result: result,
   };
+}
+
+function calculate(value) {
+  return "calc";
 }
 
 function reducer(state, action) {
@@ -190,8 +236,9 @@ function reducer(state, action) {
     case "seven":
     case "eight":
     case "nine":
-    case "zero":
       return handleNumbers(state, action);
+    case "zero":
+      return handleZero(state, action);
     case "decimal":
       return handleDecimalPoint(state, action);
     case "divide":

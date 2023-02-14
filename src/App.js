@@ -45,7 +45,7 @@ function handleNumbers(state, action) {
   } else if (!isNaN(state.currentValue)) {
     newValue = state.currentValue + myValue.caption;
     newHistory = state.history + myValue.caption;
-    if (state.history === "") {
+    if (state.history === "" || state.currentValue === "0") {
       newValue = myValue.caption;
       newHistory = myValue.caption;
     }
@@ -223,8 +223,23 @@ function calculate(value) {
   //return "calc";
   let calcArr = getCalcArray(value);
   let res = 0;
+  let ix = -1;
+  const operators = ["/", "x", "+", "-"];
 
-  let ix = calcArr.indexOf("/");
+  operators.forEach((el) => {
+    ix = calcArr.indexOf(el);
+    while (ix > -1) {
+      if (el === "/") res = +calcArr[ix - 1] / +calcArr[ix + 1];
+      else if (el === "x") res = +calcArr[ix - 1] * +calcArr[ix + 1];
+      else if (el === "+") res = +calcArr[ix - 1] + +calcArr[ix + 1];
+      else if (el === "-") res = +calcArr[ix - 1] - +calcArr[ix + 1];
+      calcArr.splice(ix - 1, 3, res);
+      ix = calcArr.indexOf(el);
+    }
+  });
+  return res;
+  /*
+  ix = calcArr.indexOf("/");
   while (ix > -1) {
     res = calcArr[ix - 1] / calcArr[ix + 1];
     calcArr.splice(ix - 1, 3, res);
@@ -252,6 +267,7 @@ function calculate(value) {
     ix = calcArr.indexOf("-");
   }
   return res;
+  */
 }
 
 function getCalcArray(value) {

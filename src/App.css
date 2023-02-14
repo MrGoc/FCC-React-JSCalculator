@@ -50,7 +50,7 @@
   top: -84px;
 }
 
-#display {
+.display {
   margin: 2px;
   padding-right: 2px;
   color: white;
@@ -65,7 +65,7 @@
   color: rgb(221, 98, 98);
 }
 
-#current {
+.current {
   height: 28px;
   font-size: 22px;
 }

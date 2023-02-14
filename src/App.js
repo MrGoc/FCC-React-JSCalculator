@@ -220,11 +220,10 @@ function handleCalculation(state) {
 }
 
 function calculate(value) {
-  //return "calc";
   let calcArr = getCalcArray(value);
   let res = 0;
   let ix = -1;
-  const operators = ["/", "x", "+", "-"];
+  const operators = ["/", "x", "-", "+"];
 
   operators.forEach((el) => {
     ix = calcArr.indexOf(el);
@@ -238,36 +237,6 @@ function calculate(value) {
     }
   });
   return res;
-  /*
-  ix = calcArr.indexOf("/");
-  while (ix > -1) {
-    res = calcArr[ix - 1] / calcArr[ix + 1];
-    calcArr.splice(ix - 1, 3, res);
-    ix = calcArr.indexOf("/");
-  }
-
-  ix = calcArr.indexOf("x");
-  while (ix > -1) {
-    res = calcArr[ix - 1] * calcArr[ix + 1];
-    calcArr.splice(ix - 1, 3, res);
-    ix = calcArr.indexOf("x");
-  }
-
-  ix = calcArr.indexOf("+");
-  while (ix > -1) {
-    res = calcArr[ix - 1] + calcArr[ix + 1];
-    calcArr.splice(ix - 1, 3, res);
-    ix = calcArr.indexOf("+");
-  }
-
-  ix = calcArr.indexOf("-");
-  while (ix > -1) {
-    res = calcArr[ix - 1] - calcArr[ix + 1];
-    calcArr.splice(ix - 1, 3, res);
-    ix = calcArr.indexOf("-");
-  }
-  return res;
-  */
 }
 
 function getCalcArray(value) {
@@ -294,23 +263,6 @@ function getCalcArray(value) {
   if (val !== "") res.push(val);
 
   return res;
-
-  /*
-  let copy = value;
-
-  value = value.replace(/[0-9]+/g, "#").replace(/[\(|\|\.)]/g, "");
-  let numbers = copy.split(/[^0-9\.]+/);
-  let operators = value.split("#").filter(function (n) {
-    return n;
-  });
-  let result = [];
-
-  for (let i = 0; i < numbers.length; i++) {
-    result.push(numbers[i]);
-    if (i < operators.length) result.push(operators[i]);
-  }
-  return result;
-  */
 }
 
 function reducer(state, action) {
@@ -356,9 +308,11 @@ function App() {
 
 function Display({ state }) {
   return (
-    <div id="display">
+    <div className="display">
       <span id="result">{state.history}</span>
-      <span id="current">{state.currentValue}</span>
+      <span id="display" className="current">
+        {state.currentValue}
+      </span>
     </div>
   );
 }
